@@ -4,33 +4,23 @@ import { getSupabaseAdmin } from '../../../lib/supabase'
 
 const DEFAULT_SOURCES = [
   { name: 'Medical Education Rajasthan', url: 'https://medicaleducation.rajasthan.gov.in/', state: 'Rajasthan', category: 'Medical College' },
-  { name: 'AIIMS Exams', url: 'https://www.aiimsexams.ac.in/', state: 'India', category: 'Government Medical' }
+  { name: 'AIIMS Exams Notices', url: 'https://www.aiimsexams.ac.in/landingpage/notice', state: 'India', category: 'Government Medical' }
 ]
 
-const KEYWORDS = [
-  'recruitment', 'vacancy', 'walk-in', 'walk in', 'doctor', 'medical officer',
+const STRONG_JOB_KEYWORDS = [
+  'recruitment', 'vacancy', 'walk-in', 'walk in', 'medical officer',
   'junior resident', 'senior resident', 'faculty', 'professor',
-  'tutor', 'demonstrator', 'medical', 'hospital', 'nhm', 'aiims', 'esic', 'appointment'
+  'tutor', 'demonstrator', 'appointment', 'advertisement', 'notification'
 ]
 
-const BAD_TITLE_EXACT = new Set([
-  'recruitments',
-  'workrecruitments',
-  'recruitment',
-  'vacancy',
-  'home',
-  'click here',
-  'read more',
-  'view all'
-])
+const BAD_WORDS = [
+  'privacy', 'terms', 'refund', 'cancellation', 'support', 'key dates',
+  'main portal', 'home', 'login', 'registration', 'result', 'admit card',
+  'syllabus', 'prospectus', 'miscellaneous', 'notice', 'notices'
+]
 
 function cleanText(text: string) {
-  return text.replace(/\s+/g, ' ').trim()
-}
-
-function isMedicalVacancy(text: string) {
-  const t = text.toLowerCase()
-  return KEYWORDS.some(k => t.includes(k))
+  return text.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
 function absoluteUrl(href: string, base: string) {
@@ -41,19 +31,25 @@ function absoluteUrl(href: string, base: string) {
   }
 }
 
+function hasStrongJobSignal(title: string, url: string) {
+  const haystack = `${title} ${url}`.toLowerCase()
+  return STRONG_JOB_KEYWORDS.some(k => haystack.includes(k))
+}
+
 function isGoodCandidate(title: string, url: string) {
   const cleanTitle = cleanText(title)
   const lowerTitle = cleanTitle.toLowerCase()
   const lowerUrl = url.toLowerCase()
 
-  if (!cleanTitle || cleanTitle.length < 12) return false
-  if (BAD_TITLE_EXACT.has(lowerTitle)) return false
+  if (!cleanTitle || cleanTitle.length < 15) return false
+  if (!lowerUrl.startsWith('http')) return false
   if (lowerUrl.includes('undefined')) return false
   if (lowerUrl.includes('javascript:')) return false
   if (lowerUrl.includes('#')) return false
-  if (!lowerUrl.startsWith('http')) return false
+  if (BAD_WORDS.some(w => lowerTitle.includes(w))) return false
+  if (BAD_WORDS.some(w => lowerUrl.includes(w.replace(/\s+/g, '-')))) return false
 
-  return isMedicalVacancy(`${cleanTitle} ${url}`)
+  return hasStrongJobSignal(cleanTitle, url)
 }
 
 export async function GET() {
