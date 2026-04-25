@@ -42,7 +42,11 @@ export async function GET() {
     for (const source of DEFAULT_SOURCES) {
       try {
         const response = await fetch(source.url, {
-          headers: { 'user-agent': 'MedVacancyIndiaBot/1.0' },
+          headers: {
+            'user-agent': 'Mozilla/5.0 (compatible; MedVacancyIndiaBot/1.0; +https://github.com/drsahdev7-cyber/medvacancy-india)',
+            accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'accept-language': 'en-IN,en;q=0.9'
+          },
           cache: 'no-store'
         })
 
@@ -67,6 +71,8 @@ export async function GET() {
         })
 
         for (const item of candidates.slice(0, 12)) {
+          // Keep this payload matched to the live Supabase table. Do not include optional columns
+          // like collected_by here, because older Supabase schema cache can reject the insert.
           const { data, error } = await supabase
             .from('vacancies')
             .upsert({
@@ -77,7 +83,6 @@ export async function GET() {
               source_url: item.url,
               summary: 'Auto-collected from official public source. Verify eligibility, deadline and application details from the official link before applying.',
               status: 'approved',
-              collected_by: 'auto',
               confidence_score: 70
             }, { onConflict: 'source_url' })
             .select()
