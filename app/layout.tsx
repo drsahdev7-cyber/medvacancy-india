@@ -1,5 +1,6 @@
 import './style.css'
 import type { ReactNode } from 'react'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata = {
   title: 'MedVacancy India',
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </nav>
         </header>
         {children}
+        <Analytics />
       </body>
     </html>
   )
