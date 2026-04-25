@@ -2,8 +2,8 @@ import './style.css'
 import type { ReactNode } from 'react'
 
 export const metadata = {
-  title: 'MedVacancy India',
-  description: 'Latest government and private medical vacancies in India.'
+  title: 'Global Doctor Vacancies',
+  description: 'Public government and hospital doctor vacancies from trusted global sources.'
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -11,9 +11,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body>
         <header className="topbar">
-          <a className="brand" href="/">MedVacancy India</a>
+          <a className="brand" href="/">Global Doctor Vacancies</a>
           <nav>
-            <a href="/">Vacancies</a>
+            <a href="/">Jobs</a>
             <a href="/premium">Premium</a>
             <a href="/admin">Admin</a>
           </nav>
