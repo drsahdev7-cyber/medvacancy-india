@@ -1,26 +1,34 @@
-export default function Home() {
+import { supabasePublic } from '../lib/supabase'
+
+export default async function Home() {
+  const { data: jobs } = await supabasePublic
+    .from('vacancies')
+    .select('*')
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false })
+    .limit(20)
+
   return (
     <main>
       <section className="hero">
         <h1>MedVacancy India</h1>
         <p>Latest medical vacancies from official public sources across India.</p>
       </section>
+
       <section className="container">
-        <div className="grid">
-          <div className="card">
-            <h2>Government Jobs</h2>
-            <p className="muted">NHM, medical colleges, public hospitals and scheme-based roles.</p>
+        {(!jobs || jobs.length === 0) && (
+          <div className="card">No vacancies yet. Run collector.</div>
+        )}
+
+        {jobs?.map((j: any) => (
+          <div key={j.id} className="card">
+            <h3>{j.title}</h3>
+            <p className="muted">{j.institute} • {j.state}</p>
+            <p>{j.summary}</p>
+            <a className="btn" href={j.source_url} target="_blank">Apply / View</a>
           </div>
-          <div className="card">
-            <h2>Private Hospital Jobs</h2>
-            <p className="muted">JR, RMO, medical officer, audit doctor and insurance desk roles.</p>
-          </div>
-          <div className="card">
-            <h2>Premium Alerts</h2>
-            <p className="muted">State-wise early alerts, deadline reminders and official links.</p>
-          </div>
-        </div>
+        ))}
       </section>
     </main>
-  );
+  )
 }
