@@ -1,11 +1,12 @@
-import './style.css';
+import './style.css'
+import type { ReactNode } from 'react'
 
 export const metadata = {
   title: 'MedVacancy India',
   description: 'Latest government and private medical vacancies in India.'
-};
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
@@ -20,5 +21,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
       </body>
     </html>
-  );
+  )
 }
