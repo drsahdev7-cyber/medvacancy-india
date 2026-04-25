@@ -3,10 +3,8 @@ import * as cheerio from 'cheerio'
 import { getSupabaseAdmin } from '../../../lib/supabase'
 
 const DEFAULT_SOURCES = [
-  { name: 'NHM Rajasthan', url: 'https://rajswasthya.nic.in/', state: 'Rajasthan', category: 'Government Medical' },
   { name: 'Medical Education Rajasthan', url: 'https://medicaleducation.rajasthan.gov.in/', state: 'Rajasthan', category: 'Medical College' },
-  { name: 'AIIMS Exams', url: 'https://www.aiimsexams.ac.in/', state: 'India', category: 'Government Medical' },
-  { name: 'ESIC Recruitment', url: 'https://www.esic.gov.in/recruitments', state: 'India', category: 'Government Medical' }
+  { name: 'AIIMS Exams', url: 'https://www.aiimsexams.ac.in/', state: 'India', category: 'Government Medical' }
 ]
 
 const KEYWORDS = [
@@ -71,8 +69,7 @@ export async function GET() {
         })
 
         for (const item of candidates.slice(0, 12)) {
-          // Keep this payload matched to the live Supabase table. Do not include optional columns
-          // like collected_by here, because older Supabase schema cache can reject the insert.
+          // Minimal payload only: this works with the current live Supabase table.
           const { data, error } = await supabase
             .from('vacancies')
             .upsert({
@@ -82,8 +79,7 @@ export async function GET() {
               category: source.category,
               source_url: item.url,
               summary: 'Auto-collected from official public source. Verify eligibility, deadline and application details from the official link before applying.',
-              status: 'approved',
-              confidence_score: 70
+              status: 'approved'
             }, { onConflict: 'source_url' })
             .select()
 
