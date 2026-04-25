@@ -9,9 +9,20 @@ const DEFAULT_SOURCES = [
 
 const KEYWORDS = [
   'recruitment', 'vacancy', 'walk-in', 'walk in', 'doctor', 'medical officer',
-  'junior resident', 'jr', 'senior resident', 'sr', 'faculty', 'professor',
-  'tutor', 'demonstrator', 'hospital', 'nhm', 'aiims', 'esic', 'appointment'
+  'junior resident', 'senior resident', 'faculty', 'professor',
+  'tutor', 'demonstrator', 'medical', 'hospital', 'nhm', 'aiims', 'esic', 'appointment'
 ]
+
+const BAD_TITLE_EXACT = new Set([
+  'recruitments',
+  'workrecruitments',
+  'recruitment',
+  'vacancy',
+  'home',
+  'click here',
+  'read more',
+  'view all'
+])
 
 function cleanText(text: string) {
   return text.replace(/\s+/g, ' ').trim()
@@ -30,12 +41,28 @@ function absoluteUrl(href: string, base: string) {
   }
 }
 
+function isGoodCandidate(title: string, url: string) {
+  const cleanTitle = cleanText(title)
+  const lowerTitle = cleanTitle.toLowerCase()
+  const lowerUrl = url.toLowerCase()
+
+  if (!cleanTitle || cleanTitle.length < 12) return false
+  if (BAD_TITLE_EXACT.has(lowerTitle)) return false
+  if (lowerUrl.includes('undefined')) return false
+  if (lowerUrl.includes('javascript:')) return false
+  if (lowerUrl.includes('#')) return false
+  if (!lowerUrl.startsWith('http')) return false
+
+  return isMedicalVacancy(`${cleanTitle} ${url}`)
+}
+
 export async function GET() {
   try {
     const supabase = getSupabaseAdmin()
     const inserted: any[] = []
     const skipped: any[] = []
     const errors: any[] = []
+    const seenUrls = new Set<string>()
 
     for (const source of DEFAULT_SOURCES) {
       try {
@@ -60,16 +87,14 @@ export async function GET() {
         $('a').each((_, el) => {
           const title = cleanText($(el).text())
           const href = $(el).attr('href') || ''
-          if (!title || !href) return
-          const combined = title + ' ' + href
-          if (!isMedicalVacancy(combined)) return
           const url = absoluteUrl(href, source.url)
-          if (!url) return
+          if (!isGoodCandidate(title, url)) return
+          if (seenUrls.has(url)) return
+          seenUrls.add(url)
           candidates.push({ title: title.slice(0, 240), url })
         })
 
-        for (const item of candidates.slice(0, 12)) {
-          // Minimal payload only: this works with the current live Supabase table.
+        for (const item of candidates.slice(0, 20)) {
           const { data, error } = await supabase
             .from('vacancies')
             .upsert({
