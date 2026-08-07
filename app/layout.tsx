@@ -1,5 +1,6 @@
 import './style.css'
 import type { ReactNode } from 'react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata = {
   title: 'Global Doctor Vacancies',
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </nav>
         </header>
         {children}
+        <SpeedInsights />
       </body>
     </html>
   )
